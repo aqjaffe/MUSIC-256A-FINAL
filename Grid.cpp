@@ -95,11 +95,11 @@ void Grid::highlightClear() {
 	}
 }
 
-std::string Grid::getHighlighted() {
-	std::string chord = "";
+PlayableChord* Grid::getHighlighted() {
+	PlayableChord* chord = new PlayableChord();
 	for (int i = 0; i < GRID_NBLOCKS; i++) {
 		for (int j = 0; j < GRID_NBLOCKS; j++) {
-			if (highlight[i][j]) chord += notes[i][j].getName() + " ";
+			if (highlight[i][j]) chord->addChroma(notes[i][j]);
 		}
 	}
 	return chord;

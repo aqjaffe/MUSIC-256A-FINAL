@@ -2,14 +2,16 @@
 // AUTHOR: Adam Jaffe
 // INFO: The header file for the Grid class
 
-#pragma once
+#ifndef GRID_H
+#define GRID_H
 
-#include <random>
-#include <chrono>
+
 #include "ofMain.h"
 #include "Chroma.h"
+#include "PlayableChord.h"
 #include "Constants.h"
-
+#include <random>
+#include <chrono>
 
 class Grid
 {
@@ -20,7 +22,7 @@ public:
 	void draw(int x, int y, int side);
 	void highlightBlocks(int startRow, int startCol, int endRow, int endCol);
 	void highlightClear();
-	std::string getHighlighted();
+	PlayableChord* getHighlighted();
 
 private:
 	ofTrueTypeFont chromaFont;
@@ -28,3 +30,4 @@ private:
 	bool highlight[GRID_NBLOCKS][GRID_NBLOCKS];
 };
 
+#endif
