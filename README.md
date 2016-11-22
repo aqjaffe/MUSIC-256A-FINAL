@@ -5,4 +5,6 @@ This program is an educational tool to teach children about chord sequences. In 
 
 Currently, only the grid and some displayed features have been implemented. There is no ambient music or audio playback of the created chords, but there is still an interactive design with the existing elements. Also, I have decomposed and commented the program very carefully so as to reduce later work.
 
+Implemented playback of the selected chords.
+
 Created using VisualStudio2015 and openFrameworks. Created for MUSIC 256A at Stanford CCRMA.
