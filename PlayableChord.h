@@ -7,6 +7,7 @@
 
 #include "Chroma.h"
 #include "Constants.h"
+#include "ChordID.h"
 #include <vector>
 #include <string>
 
@@ -15,6 +16,7 @@ public:
 	PlayableChord();
 	~PlayableChord();
 	void addChroma(Chroma c);
+	void finalize();
 	bool isDefined();
 	std::string getChordName();
 	std::string getChromaNames();
@@ -22,6 +24,8 @@ public:
 
 private:
 	Chroma chroma[MAX_NCHROMA];
+	Chroma root;
+	std::string name;
 	int nChroma;
 };
 

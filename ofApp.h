@@ -5,14 +5,16 @@
 //#pragma once
 
 #ifndef OFAPP_H
-#define OFAPP_H 
+#define OFAPP_H
 
 #include <algorithm>
 #include "ofMain.h"
 #include "Grid.h"
 #include "ChordList.h"
+#include "ButtonZone.h"
+//#include "FaustReverb.h"
 
-class ofApp : public ofBaseApp{
+class ofApp : public ofBaseApp {
 
 	public:
 		void setup();
@@ -38,23 +40,27 @@ private:
 	int key;
 	Grid grid;
 	ChordList chordList;
+	ButtonZone buttonZone;
 	int mousePressRow, mousePressCol;
-	bool moving;
 
 	// the audio components
 
 	ofSoundStream soundStream;
-	int	sampleRate, nInputChans;
+	int	bufferSize, sampleRate, nInputChans;
+
+	vector <float> lAudio;
+	vector <float> rAudio;
 
 	//------------------- for Faust reverb stuff!
-	//float **audioBuffer; // The 2d audio buffer that Faust wants to work with
+	float **audioBuffer; // The 2d audio buffer that Faust wants to work with
 
-	//FaustReverb reverb; // the Faust module (Reverb.h)
-	//MapUI reverbControl; // used to easily control the Faust module (Reverb.h)
+	//FaustReverb reverb; // the Faust module (FaustReverb.h)
+	//MapUI reverbControl; // used to easily control the Faust module
 
 	//ofMutex myMutex;
 
 	bool mouseOverGrid(int x, int y);
+	bool mouseOverPlayButton(int x, int y);
 };
 
 #endif

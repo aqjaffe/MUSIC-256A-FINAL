@@ -21,13 +21,24 @@ void PlayableChord::addChroma(Chroma c) {
 }
 
 
+void PlayableChord::finalize() {
+	std::vector<int> chord;
+	for (int i = 0; i < nChroma; i++) {
+		chord.push_back(chroma[i].getTone());
+	}
+	Chroma r;
+	int rootTone = getRoot(chord);
+	r.setTone(rootTone, true);
+	root = r;
+	name = chordNameFromRoot(chord, rootTone);
+}
+
+
 bool PlayableChord::isDefined() {
 	return nChroma >= 3;
 }
 
 std::string PlayableChord::getChordName() {
-	std::string name = "";
-	name = "adam"; //TODO: change this
 	return name;
 }
 
@@ -47,7 +58,8 @@ void PlayableChord::play(float* output, int bufferSize, int nChannels) {
 		for (int i = 0; i < nChroma; i++) {
 			total += chroma[i].tick();
 		}
-		float val = (float)(total / (float)nChroma);
+		total += root.tick();
+		float val = (float)(total / (float)(nChroma + 1.0));
 		for (int chan = 0; chan < nChannels; chan++) {
 			output[sample * nChannels + chan] = val;
 		}
