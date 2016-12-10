@@ -7,9 +7,9 @@
 
 
 #include "ofMain.h"
-#include "Chroma.h"
-#include "PlayableChord.h"
 #include "Constants.h"
+#include "PlayableChord.h"
+#include "Chroma.h"
 #include <algorithm>
 #include <random>
 #include <vector>
@@ -22,24 +22,32 @@ public:
 	~Grid();
 	Chroma getChroma(int row, int col);
 	void update();
-	void draw(int x, int y, int side);
+	void draw(int x, int y, int side, int hue);
 	void highlightBlocks(int startRow, int startCol, int endRow, int endCol);
 	void highlightClear();
 	void highlightErase();
 	PlayableChord* getHighlighted();
+	void reset();
 	bool isMoving();
 
 private:
+	// for randomizing the note distribution
 	unsigned seed;
-	std::default_random_engine generator;
-	const std::discrete_distribution<int>* distribution;
+	default_random_engine generator;
+	const discrete_distribution<int>* distribution;
+	const discrete_distribution<int>* uniform;
+
+	// some machinery
 	Chroma notes[GRID_NBLOCKS][GRID_NBLOCKS];
-	int chromaSize;
 	int deletedChroma[MAX_NCHROMA][2];
 	int nDeletedChroma;
+
+	// some graphical elements
+	int chromaSize;
 	int movingFrame;
 	int distanceToFall;
-
+	
+	// some private member functions
 	bool isHighlightedVertical();
 	bool isFalling(int row, int col);
 	bool isDeleted(int row, int col);

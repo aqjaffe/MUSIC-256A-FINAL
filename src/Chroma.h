@@ -11,18 +11,19 @@
 #include <algorithm>
 #include "Constants.h"
 #include "ofMain.h"
+#include "ofxStk.h"
 
 class Chroma
 {
 public:
 	Chroma();
 	~Chroma();
-	std::string getName();
+	string getName();
 	int getTone();
 	float getFreq();
 	void setTone(int tone, bool low);
-	float tick();
-	void draw(int x, int y, int squareSide, int movingFrame, int maxDistance);
+	void tick(float* buffer, int bufferSize);
+	void draw(int x, int y, int squareSide, int movingFrame, int maxDistance, int hue);
 	void setIndex(int row, int col);
 	void setHighlight(bool highlight);
 	bool isHighlighted();
@@ -30,24 +31,26 @@ public:
 	bool isDeleted();
 	void setFalling(bool falling);
 	bool isFalling();
+	void instrumentOn();
+	void instrumentOff();
 
 private:
-	// some const's for getting the name and freq of each tone
-	static const std::string names[12];
+	// the array of chroma frequencies
 	static const double freqs[12];
 
+	// some representative data
 	int tone;
-	std::string name;
 	float freq;
-	float currentAngle, angleDelta;
 
 	// some drawing specs
 	int row, col;
 	bool highlighted;
 	bool falling;
 	bool deleted;
-
 	ofTrueTypeFont font;
+
+	// the audio synthesizer
+	stk::SineWave instrument;
 };
 
 #endif

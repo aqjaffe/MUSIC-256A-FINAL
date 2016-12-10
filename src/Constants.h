@@ -1,57 +1,59 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <string>
+
 // some audio parameters
+
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 512
-#define CHORD_DURATION_SCALE 0.75
+#define ATTACK_TIME 0.10
+#define DECAY_TIME 0.03
+#define SUSTAIN_LEVEL 0.8
+#define RELEASE_TIME 0.05
+#define FILE_FREQUENCY 0.25
 
-#define DEFAULT_KEY 0
-#define DEFAULT_TIME 120
+// some game element parameters
 
-// grid specs:
-
-#define GRID_MARGIN 20
-#define GRID_NBLOCKS 6
-#define GRID_SIZE 500
-
-// the falling speed of the blocks, in pxls/frame
-#define GRAVITY 1
-
-// chord list specs:
-
-#define CHORDS_MARGIN 30
-#define CHORDS_WIDTH 200
-#define CHORD_LINE_SPACE 10
-
-#define BUTTON_WIDTH 150
-#define BUTTON_HEIGHT 80
-
-// colors:
-
-#define BACKGROUND_COLOR 0, 0, 0
-
-#define GRID_BORDER_COLOR 0, 0, 0
-#define GRID_TILE_COLOR 255, 243, 117
-#define GRID_HIGHLIGHT_COLOR 255, 144, 117
-
-// fonts:
-
-#define GRID_FONT_NAME "Arial Black"
-#define GRID_FONT_SIZE 14
-#define GRID_FONT_COLOR 0, 0, 0
-
-#define TITLE_FONT_NAME "Franklin Gothic Medium"
-#define TITLE_FONT_SIZE 24
-#define TITLE_FONT_COLOR 255, 255, 255
-
-#define CHORDS_FONT_NAME "Franklin Gothic Medium"
-#define CHORDS_FONT_SIZE 12
-#define CHORDS_FONT_COLOR 255, 243, 147
-
-#define BUTTON_SIDE_MARGIN 35
-#define BUTTON_TOP_MARGIN 50
-
+//#define DEFAULT_KEY 3
+#define SECONDS_PER_KEY 60
+#define CHORD_PLAYBACK_DURATION 500
 #define MAX_NCHROMA 5
+
+// some graphical parameters
+
+#define GRAVITY 1
+#define DEFAULT_COLOR 230, 230, 230
+#define GRID_X 225
+#define GRID_Y 25
+#define GRID_SIZE 550
+#define GRID_NBLOCKS 6
+#define CHROMA_FONT_NAME "OCR A Extended"
+#define CHROMA_FONT_SIZE 24
+#define GAME_FONT_NAME "OCR A Extended"
+#define GAME_FONT_SIZE 36
+#define KEY_FONT_SIZE 58
+#define MESSAGE_FONT_SIZE 18
+#define SATURATION 180
+#define BRIGHTNESS 180
+
+extern int key;
+
+extern int level;
+
+const std::string names[][12] =
+{ { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "B" }, // C
+{ "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "Cb", "C" }, // Db
+{ "D", "D#", "E", "E#", "F#", "G", "G#", "A", "A#", "B", "C", "C#" }, // D
+{ "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B", "C", "Db", "D" }, // Eb
+{ "E", "E#", "F#", "F##", "G#", "A", "A#", "B", "B#", "C#", "D", "D#" }, // E
+{ "F", "F#", "G", "G#", "A", "Bb", "B", "C", "C#", "D", "Eb", "E" }, // F
+{ "Gb", "G", "Ab", "A", "Bb", "Cb", "C", "Db", "D", "Eb", "Fb", "F" }, // Gb
+{ "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#" }, // G
+{ "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G" }, // Ab
+{ "A", "A#", "B", "B#", "C#", "D", "D#", "E", "E#", "F#", "G", "G#" }, // A
+{ "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A" }, // Bb
+{ "B", "B#", "C#", "C##", "D#", "E", "E#", "F#", "F##", "G#", "A", "A#" }, // B
+};
 
 #endif

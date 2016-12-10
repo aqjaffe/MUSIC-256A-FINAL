@@ -2,17 +2,18 @@
 // AUTHOR: Adam Jaffe
 // INFO: The header file for the ofApp class
 
-//#pragma once
-
 #ifndef OFAPP_H
 #define OFAPP_H
 
-#include <algorithm>
 #include "ofMain.h"
+#include "ofxStk.h"
 #include "Grid.h"
-#include "ChordList.h"
-#include "ButtonZone.h"
-//#include "FaustReverb.h"
+#include "Smooth.h"
+#include <algorithm>
+#include <random>
+#include <vector>
+#include <ctime>
+
 
 class ofApp : public ofBaseApp {
 
@@ -35,32 +36,35 @@ class ofApp : public ofBaseApp {
 		void audioOut(float * output, int bufferSize, int nChannels);
 
 private:
-	int score;
-	float time_left;
-	int key;
+	// some game elements
 	Grid grid;
-	ChordList chordList;
-	ButtonZone buttonZone;
+	PlayableChord* playingChord;
+	int prevChord;
+	int score;
+	int hue;
+	Smooth smooth;
 	int mousePressRow, mousePressCol;
+	float gameTime;
+	bool firstRun;
+	bool gameLost;
 
-	// the audio components
+	// some graphical elements
+	clock_t gameStart;
+	clock_t keyStart;
+	string message;
+	string cadence;
+	ofImage image;
+	ofTrueTypeFont font;
+	ofTrueTypeFont keyFont;
+	ofTrueTypeFont messageFont;
+	ofTrueTypeFont titleFont;
 
-	ofSoundStream soundStream;
+	// some audio elements
 	int	bufferSize, sampleRate, nInputChans;
-
-	vector <float> lAudio;
-	vector <float> rAudio;
-
-	//------------------- for Faust reverb stuff!
-	float **audioBuffer; // The 2d audio buffer that Faust wants to work with
-
-	//FaustReverb reverb; // the Faust module (FaustReverb.h)
-	//MapUI reverbControl; // used to easily control the Faust module
-
-	//ofMutex myMutex;
+	ofSoundStream soundStream;
+	stk::FileLoop beat;
 
 	bool mouseOverGrid(int x, int y);
-	bool mouseOverPlayButton(int x, int y);
 };
 
 #endif

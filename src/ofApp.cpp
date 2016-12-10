@@ -4,178 +4,233 @@
 
 #include "ofApp.h"
 
-//--------------------------------------------------------------
-void ofApp::setup() {
-	score = 0;
-	time_left = DEFAULT_TIME;
-	key = DEFAULT_KEY;
+extern int key(rand() % 12);
 
+extern int level(1);
+
+void ofApp::setup() {
+	// initialize the game values
+	score = 0;
+	playingChord = NULL;
 	mousePressRow = -1;
 	mousePressCol = -1;
+	gameTime = SECONDS_PER_KEY;
+	firstRun = true;
+	gameLost = false;
 
-	// below is copied from ofxFaust.sln:
+	// set up the graphical elements
+	gameStart = std::clock();
+	keyStart = std::clock();
+	message = "";
+	cadence = "";
+	image.load("CrosschordBackground.png");
+	smooth.setSmooth(0.94);
+	font.loadFont(GAME_FONT_NAME, GAME_FONT_SIZE);
+	messageFont.loadFont(GAME_FONT_NAME, MESSAGE_FONT_SIZE);
+	keyFont.loadFont(GAME_FONT_NAME, KEY_FONT_SIZE);
+	titleFont.loadFont(GAME_FONT_NAME, 60);
 
+	// set up the audio elements
 	bufferSize = BUFFER_SIZE;
 	sampleRate = SAMPLE_RATE;
 	nInputChans = 2;
-	//phase = 0;
-	//phaseAdder = 0.1f;
-	//phaseAdderTarget = 0.0f;
-	//phaseAdderTarget = 0.0f;
-	//volume = 0.1f;
-	//bNoise = false;
-
-	lAudio.assign(bufferSize, 0.0);
-	rAudio.assign(bufferSize, 0.0);
-	audioBuffer = new float*[2];
-	audioBuffer[0] = &lAudio[0];
-	audioBuffer[1] = &rAudio[0];
-
-	//soundStream.printDeviceList();
-
-	//if you want to set the device id to be different than the default
-	//soundStream.setDeviceID(1); 	//note some devices are input only and some are output only 
-
 	soundStream.setup(this, nInputChans, 0, sampleRate, bufferSize, 4);
-
-	// setting default values for the Faust module parameters
-
-	//reverbControl.setParamValue("/Zita_Rev1/Output/Level", -20);
-	//reverbControl.setParamValue("/Zita_Rev1/Output/Dry/Wet_Mix", 0.0);
+	//beat.openFile(ofToDataPath("beat.wav", false));
+	beat.setFrequency(FILE_FREQUENCY);
+	stk::Stk::setSampleRate(SAMPLE_RATE);
 }
 
-//--------------------------------------------------------------
+
 void ofApp::update(){
 	grid.update();
-	chordList.update();
+	std::clock_t curr = std::clock();
+	if ((curr - gameStart) / (float)CLOCKS_PER_SEC >= gameTime) {
+		gameLost = true;
+	} else if ((curr - keyStart) / (float)CLOCKS_PER_SEC >= SECONDS_PER_KEY) { // reset the key
+		keyStart = curr;
+		int newKey;
+		do {
+			newKey = rand() % 12;
+		} while (newKey == ::key);
+		::key = newKey;
+		::key %= 12;
+		::level++;
+		grid.reset();
+		message = "";
+	}
 }
 
-//--------------------------------------------------------------
-void ofApp::draw(){
-	ofSetBackgroundColor(BACKGROUND_COLOR);
-	grid.draw(GRID_MARGIN, GRID_MARGIN, GRID_SIZE);
-	chordList.draw(2 * GRID_MARGIN + GRID_SIZE + CHORDS_MARGIN, GRID_MARGIN);
-	buttonZone.draw(0, 2 * GRID_MARGIN + GRID_SIZE);
-}
 
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key) {}
-
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button) {
-	if (grid.isMoving() || chordList.isPlaying()) {
+void ofApp::draw() {
+	// draw the background and grid
+	hue = smooth.tick(255 * ::key / 12.0);
+	ofSetBackgroundColor(ofColor::fromHsb(hue, SATURATION, BRIGHTNESS));
+	image.draw(0, 0);
+	if (gameLost || firstRun) {
+		titleFont.drawString("crosschord", 250, 100);
+		font.drawString("TIME", 55, 70);
+		font.drawString("SCORE", 40, 165);
+		keyFont.loadFont(GAME_FONT_NAME, KEY_FONT_SIZE);
+		keyFont.drawString("KEY", 45, 535);
+		if (firstRun) {
+			messageFont.drawString("Select 3 to 5 notes to make a chord."
+				"\n\nGain points and extra time for"
+				"\npicking chords from the given key."
+				"\n\n60 sec per key."
+				"\n60 on the clock to play.", 250, 200);
+			messageFont.drawString("Click anywhere to play", 340, 500);
+		}
+		else {
+			messageFont.drawString("GAME OVER", 440, 300);
+			string scoreStr = "Score: " + to_string(score);
+			messageFont.drawString(scoreStr, 225 + 0.5 * (GRID_SIZE - messageFont.stringWidth(scoreStr)), 350);
+			messageFont.drawString("Click anywhere to replay", 340, 500);
+		}
 		return;
 	}
-	int row = (y - GRID_MARGIN) * GRID_NBLOCKS / GRID_SIZE;
-	int col = (x - GRID_MARGIN) * GRID_NBLOCKS / GRID_SIZE;
-	if (mouseOverGrid(x, y)) {
-		grid.highlightBlocks(mousePressRow, mousePressCol, row, col);
+	grid.draw(GRID_X, GRID_Y, GRID_SIZE, hue);
+
+	// draw the timer
+	ofSetColor(DEFAULT_COLOR);
+	float time = gameTime - (std::clock() - gameStart) / (float)CLOCKS_PER_SEC;
+	string timeStr;
+	if (time >= 10.0) timeStr = to_string(time).substr(0, 5);
+	else timeStr = "0" + to_string(time).substr(0, 4);
+	font.drawString(timeStr, 38, 70);
+
+	// draw the sidebar elements
+	string scoreName = to_string(score);
+	font.drawString(scoreName, 20 + 0.5 * (175 - font.stringWidth(scoreName)), 165);
+	string keyName = names[::key][0];
+	messageFont.drawString(message, 20 + 0.5 * (175 - messageFont.stringWidth(message)), 265);
+	if (!cadence.empty()) {
+		messageFont.drawString(cadence, 20 + 0.5 * (175 - messageFont.stringWidth(cadence)), 300);
+		messageFont.drawString("Cadence", 20 + 0.5 * (175 - messageFont.stringWidth("Cadence")), 330);
 	}
+	ofPushStyle();
+	float timeKeyProportion = (std::clock() - keyStart) / (float)(CLOCKS_PER_SEC * SECONDS_PER_KEY);
+	ofSetColor(DEFAULT_COLOR, 255 * (1 -timeKeyProportion));
+	keyFont.drawString(keyName, 20 + 0.5 * (175 - keyFont.stringWidth(keyName)), 435 + 0.5 * (140 + keyFont.stringHeight(keyName)));
+	ofPopStyle();
+}
+
+
+void ofApp::keyPressed(int key) {}
+
+
+void ofApp::keyReleased(int key) {}
+
+
+void ofApp::mouseMoved(int x, int y) {}
+
+
+void ofApp::mouseDragged(int x, int y, int button) {
+	if (grid.isMoving()) return;
+	int col = (x - GRID_X) * GRID_NBLOCKS / GRID_SIZE;
+	int row = (y - GRID_Y) * GRID_NBLOCKS / GRID_SIZE;
+	if (mouseOverGrid(x, y)) grid.highlightBlocks(mousePressRow, mousePressCol, row, col);
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int /* button */) {
-	if (grid.isMoving() || chordList.isPlaying()) {
-		return;
-	}
-	if (mouseOverGrid(x, y)) {
-		mousePressRow = (y - GRID_MARGIN) * GRID_NBLOCKS / GRID_SIZE;
-		mousePressCol = (x - GRID_MARGIN) * GRID_NBLOCKS / GRID_SIZE;
-	} else if (y > 2 * GRID_MARGIN + GRID_SIZE) {
-		int button = buttonZone.mousePressed(x, y - 2 * GRID_MARGIN - GRID_SIZE);
-		if (button == 0) {
-			chordList.playAllChords();
-		} else if (button == 1) {
-			chordList.resetChords();
-		} else if (button == 2) {
-			//export button
-		}
+	if (gameLost || firstRun) {
+		gameLost = false;
+		firstRun = false;
+		score = 0;
+		playingChord = NULL;
+		gameTime = SECONDS_PER_KEY;
+		gameStart = std::clock();
+		keyStart = std::clock();
+		grid.reset();
+		::key = rand() % 12;
+	} else if (grid.isMoving()) return;
+	else if (mouseOverGrid(x, y)) {
+		mousePressCol = (x - GRID_X) * GRID_NBLOCKS / GRID_SIZE;
+		mousePressRow = (y - GRID_Y) * GRID_NBLOCKS / GRID_SIZE;
+		grid.highlightBlocks(mousePressRow, mousePressCol, mousePressRow, mousePressCol);
 	}
 }
 
-//--------------------------------------------------------------
+
 void ofApp::mouseReleased(int x, int y, int button) {
-	if (grid.isMoving() || chordList.isPlaying()) {
-		return;
-	}
+	if (grid.isMoving() || playingChord != NULL) return;
 	PlayableChord* chord = grid.getHighlighted();
-	if (chord->isDefined() && !chordList.isFull()) {
+	if (chord->isDefined()) {
+		// set the chord to play
 		chord->finalize();
-		chordList.addChord(chord);
+		delete playingChord;
+		playingChord = chord;
+		playingChord->chordOn(CHORD_PLAYBACK_DURATION);
 		grid.highlightErase();
+
+		// update the score and message box
+		message = playingChord->getChordName();
+		int tone = playingChord->getTone();
+		int roman = playingChord->getRomanNumeral();
+		if (roman == 1 || roman == 4 || roman == 5) {
+			score += 10;
+			gameTime += 3;
+		}
+		else if (roman == 2 || roman == 3 || roman == 6) {
+			score += 5;
+			gameTime += 3;
+		}
+		if (prevChord == 5 && roman == 1) { // authentic cadence
+			cadence = "Authentic";
+			score += 50;
+			gameTime += 10;
+		}
+		else if (prevChord == 4 && roman == 1) { // plagal cadence
+			cadence = "Plagal";
+			score += 30;
+			gameTime += 10;
+		}
+		else if (prevChord == 5 && roman == 6) { // deceptive cadence
+			cadence = "Deceptive";
+			score += 40;
+			gameTime += 10;
+		}
+		else {
+			cadence = "";
+		}
+		prevChord = roman;
 	} else {
 		delete chord;
 		grid.highlightClear();
 	}
 }
 
-//--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
 
-}
+void ofApp::mouseEntered(int x, int y) {}
 
-//--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
 
-}
+void ofApp::mouseExited(int x, int y) {}
 
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
 
-}
+void ofApp::windowResized(int w, int h) {}
 
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
 
-}
+void ofApp::gotMessage(ofMessage msg) {}
 
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
-}
+void ofApp::dragEvent(ofDragInfo dragInfo) {}
 
 bool ofApp::mouseOverGrid(int x, int y) {
-	return GRID_MARGIN < x && x < GRID_MARGIN + GRID_SIZE &&
-		GRID_MARGIN < y && y < GRID_MARGIN + GRID_SIZE;
-}
-
-bool ofApp::mouseOverPlayButton(int x, int y) {
-	int buttonX = GRID_MARGIN * 2 + GRID_SIZE + CHORDS_MARGIN + 0.5 * (CHORDS_WIDTH - BUTTON_WIDTH);
-	int buttonY = GRID_MARGIN + GRID_SIZE - CHORDS_MARGIN - BUTTON_HEIGHT;
-	return buttonX < x && x < buttonX + BUTTON_WIDTH &&
-		buttonY < y && y < buttonY + BUTTON_HEIGHT;
+	return GRID_X < x && x < GRID_X + GRID_SIZE &&
+		GRID_Y < y && y < GRID_Y + GRID_SIZE;
 }
 
 void ofApp::audioOut(float* output, int bufferSize, int nChannels) {
-	chordList.compute(output, bufferSize, nChannels);
-
+	if (playingChord != NULL) playingChord = playingChord->compute(output, bufferSize, nChannels);
+	
 	/*
+	stk::StkFrames frames(bufferSize, 2);
+	beat.tick(frames);
 
-	//deinterleave the buffer
 	for (int i = 0; i < bufferSize; i++) {
-		lAudio[i] = output[i*nChannels];
-		rAudio[i] = output[i*nChannels + 1];
+		output[i * nChannels] += frames(i, 0);
+		output[i * nChannels + 1] += frames(i, 1);
+		output[i * nChannels] /= 2.0;
+		output[i * nChannels + 1] /= 2.0;
 	}
-
-	// Faust stuff
-	reverb.compute(bufferSize, audioBuffer, audioBuffer); // doesn't seem like this is doing anything to output
-
-	// Interleave the output buffer
-	for (int i = 0; i < bufferSize; i++)
-	{
-		output[2 * i] = lAudio[i]; //audioBuffer[0][i];
-		output[2 * i + 1] = rAudio[i]; //audioBuffer[1][i];
-	}
-
 	*/
 }

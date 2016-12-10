@@ -1,3 +1,8 @@
+// FILE: ChordID.cpp
+// AUTHOR: Adam Jaffe
+// INFO: Implements ChordID, toolkit for chord identification
+
+
 #include "ChordID.h"
 
 
@@ -10,9 +15,7 @@ int interval(int bottom, int top) {
 
 std::string printChroma(std::vector<int> chord) {
 	std::string output = "";
-	for (unsigned i = 0; i < chord.size(); i++) {
-		output += names[chord[i]] + " ";
-	}
+	for (unsigned i = 0; i < chord.size(); i++) output += names[::key][chord[i]] + " ";
 	return output;
 }
 
@@ -25,9 +28,7 @@ std::vector<int> getRootCandidates(std::vector<int> chord) {
 		int score = 0;
 		if (find(chord.begin(), chord.end(), (*it + 3) % 12) != chord.end()
 			|| find(chord.begin(), chord.end(), (*it + 4) % 12) != chord.end()) score++;
-		if (/* find(chord.begin(), chord.end(), (*it + 6) % 12) != chord.end()
-			|| */ find(chord.begin(), chord.end(), (*it + 7) % 12) != chord.end()
-			/* || find(chord.begin(), chord.end(), (*it + 8) % 12) != chord.end() */) score++;
+		if (find(chord.begin(), chord.end(), (*it + 7) % 12) != chord.end()) score++;
 		if (score > maxScore) {
 			candidates.clear();
 			candidates.push_back(*it);
@@ -82,13 +83,13 @@ std::string getQualityFromIntervals(bool* intervals) {
 	if (intervals[7]) {
 		if (intervals[3]) quality = "minor";
 		else if (intervals[4]) quality = "major";
-		else quality = "default";  //TODO: check what this should be in the scale
+		else quality = "";
 	}
 	else if (intervals[6]) quality = "diminished";
 	else if (intervals[8]) quality = "augmented";
 	else if (intervals[3]) quality = "minor";
 	else if (intervals[4]) quality = "major";
-	else quality = "unknown";
+	else quality = "";
 	return quality;
 }
 
@@ -103,10 +104,7 @@ std::string getQuality(std::vector<int> chord, int root) {
 std::string chordName(std::vector<int> chord) {
 	int root = getRoot(chord);
 	std::string quality = getQuality(chord, root);
-	// TODO: record color notes
-	// work goes here
-
-	std::string name = names[root] + " " + quality;
+	std::string name = names[::key][root] + " " + quality;
 	return name;
 }
 
@@ -114,8 +112,6 @@ std::string chordName(std::vector<int> chord) {
 std::string chordNameFromRoot(std::vector<int> chord, int root) {
 	std::string quality = getQuality(chord, root);
 	// TODO: record color notes
-	// work goes here
-
-	std::string name = names[root] + " " + quality;
+	std::string name = names[::key][root] + " " + quality;
 	return name;
 }

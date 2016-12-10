@@ -6,24 +6,32 @@
 
 
 Grid::Grid() {
-	seed = std::chrono::system_clock::now().time_since_epoch().count();
+	seed = chrono::system_clock::now().time_since_epoch().count();
 	generator.seed(seed);
-	distribution = new std::discrete_distribution<int> { 1.97, 0.02, 1.07, 0.00, 1.51, 1.01, 0.06, 1.58, 0.10, 1.63, 0.02, 1.00 };
+	uniform = new std::discrete_distribution<int> { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
+	distribution = new std::discrete_distribution<int>{ 1.97, 0.02, 1.07, 0.00, 1.51, 1.01, 0.06, 1.58, 0.10, 1.63, 0.02, 1.00 };
 	for (int i = 0; i < GRID_NBLOCKS; i++) {
 		for (int j = 0; j < GRID_NBLOCKS; j++) {
-			notes[i][j].setTone((*distribution)(generator), false);
+			float r = rand() / (float)RAND_MAX;
+			float b = 1.0 - 1.0 / pow((float)::level, 0.3);
+			if (r >= b)
+				notes[i][j].setTone((*distribution)(generator), false);
+			else
+				notes[i][j].setTone((*uniform)(generator), false);
+			//notes[i][j].setTone((*distribution)(generator), false);
 			notes[i][j].setIndex(i, j);
 			notes[i][j].setHighlight(false);
 			notes[i][j].setDeleted(false);
 		}
 	}
-	chromaSize = GRID_SIZE / (float)GRID_NBLOCKS;
+	chromaSize = GRID_SIZE / GRID_NBLOCKS;
 	movingFrame = -1;
 	nDeletedChroma = 0;
 }
 
 
 Grid::~Grid() {
+	delete uniform;
 	delete distribution;
 }
 
@@ -45,11 +53,11 @@ void Grid::update() {
 }
 
 
-void Grid::draw(int x, int y, int side) {
+void Grid::draw(int x, int y, int side, int hue) {
 	ofPushStyle();
 	for (int i = GRID_NBLOCKS - 1; i >= 0; i--) {
 		for (int j = GRID_NBLOCKS - 1; j >= 0; j--) {
-			notes[i][j].draw(x, y, chromaSize, movingFrame, distanceToFall);
+			notes[i][j].draw(x, y, chromaSize, movingFrame, distanceToFall, hue);
 		}
 	}
 	ofPopStyle();
@@ -134,6 +142,7 @@ bool Grid::isMoving() {
 	return movingFrame > -1;
 }
 
+
 bool Grid::isHighlightedVertical() {
 	return deletedChroma[0][1] == deletedChroma[1][1];
 }
@@ -159,12 +168,8 @@ void Grid::transferFalling() {
 		for (int j = GRID_NBLOCKS - 1; j >= 0; j--) {
 			int vert = deletedChroma[0][0] - deletedChroma[nDeletedChroma - 1][0] + 1;
 			if (notes[i][j].isFalling() || notes[i][j].isDeleted()) {
-				if (i >= vert) {
-					notes[i][j] = notes[i - vert][j];
-				}
-				else {
-					notes[i][j].setTone((*distribution)(generator), false);
-				}
+				if (i >= vert) notes[i][j] = notes[i - vert][j];
+				else notes[i][j].setTone((*distribution)(generator), false);
 				notes[i][j].setIndex(i, j);
 				notes[i][j].setFalling(false);
 				notes[i][j].setDeleted(false);
@@ -176,9 +181,23 @@ void Grid::transferFalling() {
 void Grid::setFalling() {
 	for (int i = GRID_NBLOCKS - 1; i >= 0; i--) {
 		for (int j = GRID_NBLOCKS - 1; j >= 0; j--) {
-			if (isFalling(i, j)) {
-				notes[i][j].setFalling(true);
-			}
+			if (isFalling(i, j)) notes[i][j].setFalling(true);
+		}
+	}
+}
+
+void Grid::reset() {
+	for (int i = 0; i < GRID_NBLOCKS; i++) {
+		for (int j = 0; j < GRID_NBLOCKS; j++) {
+			float r = rand() / (float)RAND_MAX;
+			float b = 1.0 - 1.0 / pow((float)::level, 0.3);
+			if (r >= b)
+				notes[i][j].setTone((*distribution)(generator), false);
+			else
+				notes[i][j].setTone((*uniform)(generator), false);
+			notes[i][j].setIndex(i, j);
+			notes[i][j].setHighlight(false);
+			notes[i][j].setDeleted(false);
 		}
 	}
 }

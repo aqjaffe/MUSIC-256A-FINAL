@@ -1,13 +1,17 @@
+// FILE: ChordID.h
+// AUTHOR: Adam Jaffe
+// INFO: The header file for the ChordID class
+
+
 #ifndef CHORDID_H
 #define CHORDID_H
 
+#include "Constants.h"
 #include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <random>
-
-static const std::string names[] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B" };
 
 int interval(int bottom, int top);
 std::string printChroma(std::vector<int> chord);
