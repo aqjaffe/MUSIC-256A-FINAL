@@ -15,7 +15,6 @@
 
 // some game element parameters
 
-//#define DEFAULT_KEY 3
 #define SECONDS_PER_KEY 60
 #define CHORD_PLAYBACK_DURATION 500
 #define MAX_NCHROMA 5

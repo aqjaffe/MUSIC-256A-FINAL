@@ -17,6 +17,7 @@ void ofApp::setup() {
 	gameTime = SECONDS_PER_KEY;
 	firstRun = true;
 	gameLost = false;
+	prevChord = -1;
 
 	// set up the graphical elements
 	gameStart = std::clock();
@@ -35,7 +36,6 @@ void ofApp::setup() {
 	sampleRate = SAMPLE_RATE;
 	nInputChans = 2;
 	soundStream.setup(this, nInputChans, 0, sampleRate, bufferSize, 4);
-	//beat.openFile(ofToDataPath("beat.wav", false));
 	beat.setFrequency(FILE_FREQUENCY);
 	stk::Stk::setSampleRate(SAMPLE_RATE);
 }
@@ -57,6 +57,7 @@ void ofApp::update(){
 		::level++;
 		grid.reset();
 		message = "";
+		prevChord = -1;
 	}
 }
 
@@ -138,11 +139,12 @@ void ofApp::mousePressed(int x, int y, int /* button */) {
 		firstRun = false;
 		score = 0;
 		playingChord = NULL;
+		prevChord = -1;
 		gameTime = SECONDS_PER_KEY;
 		gameStart = std::clock();
 		keyStart = std::clock();
-		grid.reset();
 		::key = rand() % 12;
+		grid.reset();
 	} else if (grid.isMoving()) return;
 	else if (mouseOverGrid(x, y)) {
 		mousePressCol = (x - GRID_X) * GRID_NBLOCKS / GRID_SIZE;
@@ -165,35 +167,36 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
 		// update the score and message box
 		message = playingChord->getChordName();
-		int tone = playingChord->getTone();
+		int pts = playingChord->getScore();
+		if (pts > 0) {
+			gameTime += 2;
+			score += pts;
+		}
+		else {
+			message = "";
+		}
+		playingChord->getChromaNames();
 		int roman = playingChord->getRomanNumeral();
-		if (roman == 1 || roman == 4 || roman == 5) {
-			score += 10;
-			gameTime += 3;
-		}
-		else if (roman == 2 || roman == 3 || roman == 6) {
-			score += 5;
-			gameTime += 3;
-		}
 		if (prevChord == 5 && roman == 1) { // authentic cadence
 			cadence = "Authentic";
 			score += 50;
-			gameTime += 10;
+			gameTime += 5;
 		}
 		else if (prevChord == 4 && roman == 1) { // plagal cadence
 			cadence = "Plagal";
 			score += 30;
-			gameTime += 10;
+			gameTime += 5;
 		}
 		else if (prevChord == 5 && roman == 6) { // deceptive cadence
 			cadence = "Deceptive";
 			score += 40;
-			gameTime += 10;
+			gameTime += 5;
 		}
 		else {
 			cadence = "";
 		}
-		prevChord = roman;
+		if (pts < 0) prevChord = -1;
+		else prevChord = roman;
 	} else {
 		delete chord;
 		grid.highlightClear();
@@ -221,16 +224,4 @@ bool ofApp::mouseOverGrid(int x, int y) {
 
 void ofApp::audioOut(float* output, int bufferSize, int nChannels) {
 	if (playingChord != NULL) playingChord = playingChord->compute(output, bufferSize, nChannels);
-	
-	/*
-	stk::StkFrames frames(bufferSize, 2);
-	beat.tick(frames);
-
-	for (int i = 0; i < bufferSize; i++) {
-		output[i * nChannels] += frames(i, 0);
-		output[i * nChannels + 1] += frames(i, 1);
-		output[i * nChannels] /= 2.0;
-		output[i * nChannels + 1] /= 2.0;
-	}
-	*/
 }

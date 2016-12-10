@@ -10,18 +10,15 @@ const double Chroma::freqs[] = { 523.251, 554.365, 587.330, 622.254,
 								830.609, 880.000, 932.328, 987.767 };
 
 Chroma::Chroma() {
-	//stk::Stk::setRawwavePath("C:/Users/Adam/Desktop/of_v0.9.7_vs_release/apps/myApps/ofxMusicalBejeweled/bin/data/rawwaves");
 	tone = -1;
 	freq = 0.0;
 	font.loadFont(CHROMA_FONT_NAME, CHROMA_FONT_SIZE);
-	//instrument.setBodySize(0.3);
-	//instrument.setPluckPosition(0.5);
 }
 
 
 Chroma::~Chroma() {}
 
-std::string Chroma::getName() {
+string Chroma::getName() {
 	return names[::key][tone];
 }
 
@@ -36,7 +33,6 @@ float Chroma::getFreq() {
 void Chroma::setTone(int tone, bool low) {
 	this->tone = tone;
 	freq = (float)freqs[(tone + ::key) % 12];
-	//freq = (float)freqs[tone];
 	if (low) freq /= 2.0;
 	instrument.setFrequency(freq);
 }
@@ -47,7 +43,7 @@ void Chroma::tick(float* buffer, int bufferSize) {
 	instrument.tick(frames, 0);
 	for (int i = 0; i < bufferSize; i++) {
 		buffer[2 * i] += frames(i, 0);
-		buffer[2 * i + 1] += frames(i, 0);
+		buffer[2 * i + 1] += frames(i, 1);
 	}
 }
 
@@ -62,7 +58,7 @@ void Chroma::draw(int x, int y, int squareSide, int movingFrame, int maxDistance
 	}
 	if (highlighted) ofSetColor(ofColor::fromHsb(hue, SATURATION, BRIGHTNESS));
 	else ofSetColor(235, 235, 235);
-	std::string name = names[::key][tone];
+	string name = names[::key][tone];
 	font.drawString(name, cellX + 0.5 * (squareSide - font.stringWidth(name)),
 		cellY + 0.5 * (squareSide + font.stringHeight(name)));
 }
@@ -96,10 +92,6 @@ bool Chroma::isFalling() {
 	return falling;
 }
 
-void Chroma::instrumentOn() {
-	//instrument.noteOn(freq, 1.0);
-}
+void Chroma::instrumentOn() {}
 
-void Chroma::instrumentOff() {
-	//instrument.noteOff(1.0);
-}
+void Chroma::instrumentOff() {}

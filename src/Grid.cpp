@@ -18,7 +18,6 @@ Grid::Grid() {
 				notes[i][j].setTone((*distribution)(generator), false);
 			else
 				notes[i][j].setTone((*uniform)(generator), false);
-			//notes[i][j].setTone((*distribution)(generator), false);
 			notes[i][j].setIndex(i, j);
 			notes[i][j].setHighlight(false);
 			notes[i][j].setDeleted(false);

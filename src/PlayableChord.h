@@ -24,6 +24,7 @@ public:
 	std::string getChordName();
 	std::string getChromaNames();
 	int getTone();
+	int getScore();
 	int getRomanNumeral();
 	PlayableChord* compute(float* output, int bufferSize, int nChannels);
 

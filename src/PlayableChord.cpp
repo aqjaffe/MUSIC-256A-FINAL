@@ -44,8 +44,9 @@ void PlayableChord::chordOn(int millis) {
 	nFramesPerPlay *= 2;
 	frame = 0;
 	adsr.keyOn();
-	for (int i = 0; i < nChroma; i++)
+	for (int i = 0; i < nChroma; i++) {
 		chroma[i].instrumentOn();
+	}
 	root.instrumentOn();
 }
 
@@ -64,8 +65,11 @@ string PlayableChord::getChordName() {
 
 string PlayableChord::getChromaNames() {
 	string chromaNames = "";
-	for (int i = 0; i < nChroma; i++)
+	for (int i = 0; i < nChroma; i++) {
+		cout << chroma[i].getFreq() << " ";
 		chromaNames += chroma[i].getName() + " ";
+	}
+	cout << endl;
 	return chromaNames;
 }
 
@@ -110,6 +114,19 @@ PlayableChord* PlayableChord::compute(float* output, int bufferSize, int nChanne
 
 int PlayableChord::getTone() {
 	return rootTone;
+}
+
+
+int PlayableChord::getScore() {
+	int score = 0;
+	for (int i = 0; i < nChroma; i++) {
+		int intvl = interval(rootTone, chroma[i].getTone());
+		if (intvl == 0);
+		else if (intvl == 3 || intvl == 4) score += 3;
+		else if (intvl == 6 || intvl == 7 || intvl == 8) score += 2;
+		else return 0;
+	}
+	return score;
 }
 
 
