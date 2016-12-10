@@ -65,11 +65,8 @@ string PlayableChord::getChordName() {
 
 string PlayableChord::getChromaNames() {
 	string chromaNames = "";
-	for (int i = 0; i < nChroma; i++) {
-		cout << chroma[i].getFreq() << " ";
+	for (int i = 0; i < nChroma; i++)
 		chromaNames += chroma[i].getName() + " ";
-	}
-	cout << endl;
 	return chromaNames;
 }
 
